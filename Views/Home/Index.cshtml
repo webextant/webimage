@@ -1,0 +1,149 @@
+﻿@{
+    ViewBag.Title = "WebImage";
+
+    // Some server var to hold data
+    WebImage image = null;
+    WebImage myChart = null;
+    string imagebase64string = "";
+    string chartbase64string = "";
+    string errorMsg = "";
+
+    // Uploaded image
+    if (IsPost)
+    {
+        try
+        {
+            image = WebImage.GetImageFromRequest();
+        }
+        catch (Exception e)
+        {
+            errorMsg = e.Message;
+        }
+
+        if (image != null)
+        {
+            imagebase64string = Convert.ToBase64String(image.GetBytes());
+        }
+    }
+
+    // Sample chart to use for simple example: Credit: https://www.asp.net/web-pages/overview/data/7-displaying-data-in-a-chart
+    myChart = new Chart(width: 300, height: 200)
+        .AddTitle("ASP.NET Chart")
+        .AddSeries(
+            name: "Employee",
+            xValue: new[] { "Peter", "Andrew", "Julie", "Mary", "Dave" },
+            yValues: new[] { "2", "6", "4", "5", "3" })
+        .ToWebImage();
+
+    chartbase64string = Convert.ToBase64String(myChart.GetBytes());
+}
+
+<div class="jumbotron">
+    <h1>WebImage, Canvas &amp; Data URL</h1>
+    <p class="lead">Work with images without using the file system on server or client!</p>
+</div>
+
+<div class="row">
+    <div class="col-sm-12 text-center"><div class="text-center label label-danger">@errorMsg</div></div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <canvas id="my-chart-canvas" width="300" height="200"></canvas>
+    </div>
+    <div class="col-md-4">
+        <canvas id="my-image-canvas" width="300" height="200"></canvas>
+    </div>
+    <div class="col-md-4">
+        <form action="" method="post" enctype="multipart/form-data">
+            <fieldset>
+                <legend> Upload Image </legend>
+                <label for="Image">Image</label>
+                <input type="file" name="Image" />
+                <br />
+                <input type="submit" value="Upload" />
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // A bit of Javascript to render images on the client side
+
+    // canvas elements are used for rendering images
+    var chartCanvas = document.getElementById('my-chart-canvas');
+    var imageCanvas = document.getElementById('my-image-canvas');
+    var chartCtx = chartCanvas.getContext('2d');
+    var imageCtx = imageCanvas.getContext('2d');
+    // Create new Image objects in JS to work with images in the browser
+    var chartImg = new Image;
+    var imageImg = new Image;
+    // Setup events to handle drawing the images on canvas after the Image objects src is set
+    chartImg.onload = function () {
+        chartCtx.drawImage(chartImg, 0, 0);
+    }
+    imageImg.onload = function () {
+        //imageCtx.drawImage(imageImg, 0, 0);
+        drawImageProp(imageCtx, imageImg, 0, 0, imageCanvas.width, imageCanvas.height, 0.1, 0.5);
+    }
+    // Set the src property for the Image objects using Data URL format. This triggers drawing onto canvas.
+    chartImg.src = 'data:image/jpeg;base64,@chartbase64string';
+    imageImg.src = 'data:image/jpeg;base64,@imagebase64string';
+
+    // func to simulate background-size: cover
+    /**
+    * By Ken Fyrstenberg Nilsen
+    *
+    * drawImageProp(context, image [, x, y, width, height [,offsetX, offsetY]])
+    *
+    * If image and context are only arguments rectangle will equal canvas
+    * http://jsfiddle.net/epistemex/yqce3tuw/1/
+    */
+    function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
+
+        if (arguments.length === 2) {
+            x = y = 0;
+            w = ctx.canvas.width;
+            h = ctx.canvas.height;
+        }
+
+        /// default offset is center
+        offsetX = typeof offsetX === 'number' ? offsetX : 0.5;
+        offsetY = typeof offsetY === 'number' ? offsetY : 0.5;
+
+        /// keep bounds [0.0, 1.0]
+        if (offsetX < 0) offsetX = 0;
+        if (offsetY < 0) offsetY = 0;
+        if (offsetX > 1) offsetX = 1;
+        if (offsetY > 1) offsetY = 1;
+
+        var iw = img.width,
+            ih = img.height,
+            r = Math.min(w / iw, h / ih),
+            nw = iw * r,   /// new prop. width
+            nh = ih * r,   /// new prop. height
+            cx, cy, cw, ch, ar = 1;
+
+        /// decide which gap to fill    
+        if (nw < w) ar = w / nw;
+        if (nh < h) ar = h / nh;
+        nw *= ar;
+        nh *= ar;
+
+        /// calc source rectangle
+        cw = iw / (nw / w);
+        ch = ih / (nh / h);
+
+        cx = (iw - cw) * offsetX;
+        cy = (ih - ch) * offsetY;
+
+        /// make sure source rectangle is valid
+        if (cx < 0) cx = 0;
+        if (cy < 0) cy = 0;
+        if (cw > iw) cw = iw;
+        if (ch > ih) ch = ih;
+
+        /// fill image in dest. rectangle
+        ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
+    }
+</script>

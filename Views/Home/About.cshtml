@@ -1,0 +1,113 @@
+﻿@{
+    ViewBag.Title = "The Code";
+}
+<h2>@ViewBag.Title.</h2>
+<p>I prefer using heavily commented code to explain things as opposed to lengthy blog entries. Reading code directly is always better! :)</p>
+
+<p>Some things you should be familiar with first:</p>
+<ul>
+    <li>HTML Canvas - <a target="_blank" href="http://www.html5canvastutorials.com/tutorials/html5-canvas-element/">http://www.html5canvastutorials.com/</a></li>
+    <li>Javascript - <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript">https://developer.mozilla.org/en-US/docs/Learn/JavaScript</a></li>
+    <li>Data URL - <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs">https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs</a></li>
+    <li>C# Razor - <a target="_blank" href="http://www.w3schools.com/asp/razor_intro.asp">http://www.w3schools.com/asp/razor_intro.asp</a></li>
+</ul>
+
+<h3>Server Side - C# Razor Code (index.cshtml)</h3>
+<pre>
+<code>
+    // Some server vars to hold data
+    WebImage image = null;
+    WebImage myChart = null;
+    string imagebase64string = "";
+    string chartbase64string = "";
+    string errorMsg = "";
+    
+    // Uploaded image?
+    if (IsPost)
+    {
+        try
+        {
+            image = WebImage.GetImageFromRequest();
+        }
+        catch (Exception e)
+        {
+            // Something went wrong getting the uploaded WebImage. Set exception msg to show user
+            errorMsg = e.Message;
+        }
+    
+        // Do we have image object?
+        if (image != null)
+        {
+            // Convert the image bytes to base64 string for use in the data URL
+            imagebase64string = Convert.ToBase64String(image.GetBytes());
+        }
+    }
+    
+    // Sample chart to use: Credit: https://www.asp.net/web-pages/overview/data/7-displaying-data-in-a-chart
+    // NOTE: Using ToWebImage() method to convert the chart into a WebImage object
+    myChart = new Chart(width: 300, height: 200)
+        .AddTitle("ASP.NET Chart")
+        .AddSeries(
+            name: "Employee",
+            xValue: new[] { "Peter", "Andrew", "Julie", "Mary", "Dave" },
+            yValues: new[] { "2", "6", "4", "5", "3" })
+        .ToWebImage();
+    
+    // Convert the chart image bytes to base64 string to use in the data URL
+    chartbase64string = Convert.ToBase64String(myChart.GetBytes());
+</code>
+</pre>
+
+<h3>Client Side - HTML with Canvas (index.cshtml)</h3>
+<pre>
+&lt;div class=&quot;row&quot;&gt;
+    &lt;div class=&quot;col-md-4&quot;&gt;
+        &lt;canvas id=&quot;my-chart-canvas&quot; width=&quot;300&quot; height=&quot;200&quot;&gt;&lt;/canvas&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;col-md-4&quot;&gt;
+        &lt;canvas id=&quot;my-image-canvas&quot; width=&quot;300&quot; height=&quot;200&quot;&gt;&lt;/canvas&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;col-md-4&quot;&gt;
+        &lt;form action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+            &lt;fieldset&gt;
+                &lt;legend&gt; Upload Image &lt;/legend&gt;
+                &lt;label for=&quot;Image&quot;&gt;Image&lt;/label&gt;
+                &lt;input type=&quot;file&quot; name=&quot;Image&quot; /&gt;
+                &lt;br /&gt;
+                &lt;input type=&quot;submit&quot; value=&quot;Upload&quot; /&gt;
+            &lt;/fieldset&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h3>Client Side - Javascript Code (index.cshml)</h3>
+<pre>
+<code>
+        // canvas elements are used for rendering images
+        var chartCanvas = document.getElementById('my-chart-canvas');
+        var imageCanvas = document.getElementById('my-image-canvas');
+
+        // Canvas context used to do the actual drawing onto canvas
+        var chartCtx = chartCanvas.getContext('2d');
+        var imageCtx = imageCanvas.getContext('2d');
+
+        // Create new Image objects in JS to work with images in the browser
+        var chartImg = new Image;
+        var imageImg = new Image;
+
+        // Setup events to handle drawing the images on canvas after the Image objects src is set
+        chartImg.onload = function () {
+            chartCtx.drawImage(chartImg, 0, 0);
+        }   
+        imageImg.onload = function () {
+            // Using a nice little function to draw the image on canvas
+            drawImageProp(imageCtx, imageImg, 0, 0, imageCanvas.width, imageCanvas.height, 0.1, 0.5);
+        }
+
+        // Set the src property for the Image objects using Data URL format. This triggers onLoad event drawing onto canvas.
+        // NOTE: Injecting the value of the base64 strings into the JS code on server side using &commat; Razor syntax 
+        chartImg.src = 'data:image/jpeg;base64,&commat;chartbase64string';
+        imageImg.src = 'data:image/jpeg;base64,&commat;imagebase64string';
+    </code>
+</pre>
