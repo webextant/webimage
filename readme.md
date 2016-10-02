@@ -1,6 +1,12 @@
 ## WebImage Sample
 
-<p>I prefer using heavily commented code to explain things as opposed to lengthy blog entries. Reading code directly is always better! :)</p>
+<p>Sample ASP.Net application for learning how to use WebImage to create and manipulate images server side. Then, use html canvas on client side to render and manipulate.</p>
+
+<p>No image files are saved server side in this example, only rendered back to the page using Data URL's to allow Javascript to work with the images on a canvas.</p>
+
+<p>I prefer using heavily commented code to explain things as opposed to lengthy blog entries.</p>
+
+<p>Reading code directly is always better! :)</p>
 
 <p>Some things you should be familiar with first:</p>
 <ul>
@@ -8,6 +14,7 @@
     <li>Javascript - <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript">https://developer.mozilla.org/en-US/docs/Learn/JavaScript</a></li>
     <li>Data URL - <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs">https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs</a></li>
     <li>C# Razor - <a target="_blank" href="http://www.w3schools.com/asp/razor_intro.asp">http://www.w3schools.com/asp/razor_intro.asp</a></li>
+    <li>Base64 Encoding - <a target="_blank" href="https://en.wikipedia.org/wiki/Base64">https://en.wikipedia.org/wiki/Base64</a></li>
 </ul>
 
 <h3>Server Side - C# Razor Code (index.cshtml)</h3>
